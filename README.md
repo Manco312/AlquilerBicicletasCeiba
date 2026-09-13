@@ -65,6 +65,9 @@ Consola H2 (para inspeccionar el estado de la BD en memoria mientras se desarrol
 
 Arquitectura **en capas (layered)**, sin necesidad de frameworks de mensajería, CQRS ni microservicios ya que para el alcance del ejercicio (una API CRUD con reglas de negocio acotadas) esas alternativas serían sobre-ingeniería y dificultarían la evaluación de fundamentos.
 
+<img width="570" height="450" alt="image" src="https://github.com/user-attachments/assets/9fd5c0fd-c3c6-4915-9cde-688dcec923c2" />
+
+
 ```
 com.ceiba.bicialquiler/
 ├── controller/    # Adaptadores HTTP: reciben el request, delegan y traducen a ResponseEntity
