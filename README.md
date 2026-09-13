@@ -1,6 +1,6 @@
-# Alquiler de Bicicletas - Prueba CEIBA
+# Alquiler de Bicicletas
 
-<img width="376" height="125" alt="logoCeibaSoftware-horizontal-blanco" src="https://github.com/user-attachments/assets/87516912-33b2-4ef9-a3e8-0d2e139b50ed" />
+<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/8c882763-0e19-44de-9acb-fc05fb407d7e" />
 
 API REST para gestionar el alquiler de bicicletas de una empresa de turismo urbano: control de disponibilidad, inicio/fin de alquileres, cálculo automático de costos y multas por devolución tardía.
 
