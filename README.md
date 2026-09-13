@@ -272,8 +272,14 @@ El despliegue se realizó en [Render](https://render.com) como un servicio *Web 
 
 Se probaron los endpoints principales de la API ya desplegada en Render usando Postman, apuntando a la URL pública del servicio en lugar de `localhost`.
 
-**1. Listar bicicletas (`GET /api/bicicletas`)**
+**1. Iniciar un alquiler (`POST /api/alquileres`)**
 
-**2. Iniciar un alquiler (`POST /api/alquileres`)**
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/ecd528d1-3b0a-4d16-a3a9-cd100219b399" />
 
-**3. Historial de una bicicleta (`GET /api/bicicletas/{codigo}/historial`)**
+**2. Historial de una bicicleta (`GET /api/bicicletas/{codigo}/historial`)**
+
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/ceab68cf-2e33-479a-b151-9c5d1853ea0f" />
+
+**3. Listar bicicletas (`GET /api/bicicletas`)**
+
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/ea04315e-74ce-4b07-8b6a-f568e307ee88" />
