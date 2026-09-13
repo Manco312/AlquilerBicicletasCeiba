@@ -19,6 +19,7 @@ API REST para gestionar el alquiler de bicicletas de una empresa de turismo urba
 - [Modelo de datos](#modelo-de-datos)
 - [Endpoints](#endpoints)
 - [Ejemplos de peticiones (curl)](#ejemplos-de-peticiones-curl)
+- [Prueba de Despliegue](#prueba-de-despliegue)
 
 ## Tecnologías y dependencias
 
@@ -232,3 +233,47 @@ curl -X PUT http://localhost:8080/api/alquileres/999/finalizar -H "Content-Type:
   "path": "/api/alquileres/999/finalizar"
 }
 ```
+
+## Prueba de Despliegue
+
+### Dockerfile
+
+El proyecto incluye un `Dockerfile` multi-stage para poder construir y ejecutar la aplicación en un contenedor sin depender de un JDK ni un Maven instalados en el host:
+
+```dockerfile
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /app
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline -B
+
+COPY src ./src
+RUN ./mvnw package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+- **Etapa `build`**: usa la imagen `eclipse-temurin:17-jdk-alpine` (JDK 17 sobre Alpine, liviana) para compilar el proyecto. Primero copia únicamente el *wrapper* de Maven (`mvnw`, `.mvn/`) y el `pom.xml`, y descarga las dependencias (`dependency:go-offline`) antes de copiar el código fuente. Esto aprovecha la caché de capas de Docker: si no cambian las dependencias, no hace falta volver a descargarlas en cada build. Luego copia `src/` y empaqueta el `.jar` con `./mvnw package -DskipTests` (los tests ya se ejecutan en CI, no es necesario repetirlos al construir la imagen).
+- **Etapa final**: parte de `eclipse-temurin:17-jre-alpine`, una imagen mucho más liviana que solo trae el *runtime* (JRE) en lugar del JDK completo, ya que en producción no se necesita compilar nada. Copia únicamente el `.jar` generado en la etapa anterior (`COPY --from=build`), expone el puerto `8080` y define el `ENTRYPOINT` que arranca la aplicación con `java -jar app.jar`.
+- **Puerto dinámico**: `application.properties` define `server.port=${PORT:8080}`, es decir, la aplicación toma el puerto de la variable de entorno `PORT` si existe (como la asigna Render dinámicamente) y usa `8080` como valor por defecto para ejecución local. Esto permite usar la misma imagen tanto en local como en un proveedor cloud que inyecta su propio puerto.
+
+### Despliegue en Render
+
+El despliegue se realizó en [Render](https://render.com) como un servicio *Web Service*, usando el `Dockerfile` del repositorio como método de build (Render detecta el `Dockerfile`, construye la imagen y la ejecuta directamente, sin necesidad de configurar un *build command* ni un *start command* manuales).
+
+> ⚠️ **Nota importante**: el servicio está desplegado en el plan gratuito de Render, el cual apaga (duerme) la instancia tras un periodo de inactividad. Por esta razón, **no se garantiza que el despliegue esté disponible al momento de revisar este README**.
+
+### Pruebas realizadas contra el despliegue
+
+Se probaron los endpoints principales de la API ya desplegada en Render usando Postman, apuntando a la URL pública del servicio en lugar de `localhost`.
+
+**1. Listar bicicletas (`GET /api/bicicletas`)**
+
+**2. Iniciar un alquiler (`POST /api/alquileres`)**
+
+**3. Historial de una bicicleta (`GET /api/bicicletas/{codigo}/historial`)**
