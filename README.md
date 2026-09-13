@@ -9,6 +9,17 @@
 
 API REST para gestionar el alquiler de bicicletas de una empresa de turismo urbano: control de disponibilidad, inicio/fin de alquileres, cálculo automático de costos y multas por devolución tardía.
 
+## Tabla de contenidos
+
+- [Tecnologías y dependencias](#tecnologías-y-dependencias)
+- [Cómo ejecutar el proyecto localmente](#cómo-ejecutar-el-proyecto-localmente)
+- [Ejecutar las pruebas automatizadas](#ejecutar-las-pruebas-automatizadas)
+- [Arquitectura elegida y justificación](#arquitectura-elegida-y-justificación)
+- [Supuestos e interpretaciones del enunciado](#supuestos-e-interpretaciones-del-enunciado)
+- [Modelo de datos](#modelo-de-datos)
+- [Endpoints](#endpoints)
+- [Ejemplos de peticiones (curl)](#ejemplos-de-peticiones-curl)
+
 ## Tecnologías y dependencias
 
 - **Java 17**
