@@ -21,8 +21,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Dar permisos de ejecución a mvnw
+        run: chmod +x mvnw
+
       - name: Ejecutar tests
         run: ./mvnw test
-
-      - name: Compilar proyecto
-        run: ./mvnw package -DskipTests
