@@ -2,6 +2,11 @@
 
 <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/8c882763-0e19-44de-9acb-fc05fb407d7e" />
 
+![CI](https://github.com/Manco312/AlquilerBicicletasCeiba/actions/workflows/ci.yml/badge.svg)
+![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen?logo=spring)
+![License](https://img.shields.io/github/license/Manco312/AlquilerBicicletasCeiba)
+
 API REST para gestionar el alquiler de bicicletas de una empresa de turismo urbano: control de disponibilidad, inicio/fin de alquileres, cálculo automático de costos y multas por devolución tardía.
 
 ## Tecnologías y dependencias
