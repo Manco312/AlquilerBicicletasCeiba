@@ -63,7 +63,7 @@ Consola H2 (para inspeccionar el estado de la BD en memoria mientras se desarrol
 
 ## Arquitectura elegida y justificación
 
-Arquitectura **en capas (layered)**, sin necesidad de frameworks de mensajería, CQRS ni microservicios ya que para el alcance del ejercicio (una API CRUD con reglas de negocio acotadas) esas alternativas serían sobre-ingeniería y dificultarían la evaluación de fundamentos.
+Arquitectura **en capas (layered)**, sin necesidad de frameworks de mensajería, CQRS ni microservicios ya que para el alcance del ejercicio (una API CRUD con reglas de negocio acotadas) esas alternativas serían sobre-ingeniería.
 
 <img width="570" height="450" alt="image" src="https://github.com/user-attachments/assets/9fd5c0fd-c3c6-4915-9cde-688dcec923c2" />
 
@@ -83,9 +83,9 @@ com.ceiba.bicialquiler/
 
 Decisiones de diseño destacadas:
 
-1. **`CalculadoraTarifas` aislada del resto del servicio** (paquete `calculo`): recibe tipo de bicicleta, duración real y duración estimada, y devuelve un `ResultadoCalculo` con el desglose completo (horas cobradas, costo base, horas de retraso, multa, total). Es una clase de cálculo puro —sin repositorios, sin JPA, sin HTTP— por lo que las reglas de negocio más importantes (RN-01 a RN-03) se prueban unitariamente sin mocks ni base de datos. Esto es lo que pide explícitamente el enunciado como diferenciador de diseño.
+1. **`CalculadoraTarifas` aislada del resto del servicio** (paquete `calculo`): recibe tipo de bicicleta, duración real y duración estimada, y devuelve un `ResultadoCalculo` con el desglose completo (horas cobradas, costo base, horas de retraso, multa, total). Es una clase de cálculo puro (sin repositorios, sin JPA, sin HTTP) por lo que las reglas de negocio más importantes (RN-01 a RN-03) se prueban unitariamente sin mocks ni base de datos.
 2. **Redondeo al alza sin `Math.ceil`/`double`**: se usa aritmética entera sobre segundos (`(segundos + 3599) / 3600`), evitando errores de precisión de punto flotante y cubriendo el caso borde "2h exactas no redondea a 3h".
-3. **Tarifa como atributo del enum** (`TipoBicicleta.getTarifaPorHora()`): evita un `Map` paralelo que se pueda desincronizar del enum. Alternativa válida y documentada: si las tarifas debieran cambiar sin desplegar, se movería a una tabla de configuración.
+3. **Tarifa como atributo del enum** (`TipoBicicleta.getTarifaPorHora()`): evita un `Map` paralelo que se pueda desincronizar del enum.
 4. **DTOs (records) en vez de exponer entidades JPA**: la API nunca serializa `Bicicleta`/`Alquiler` directamente, evitando acoplar el contrato HTTP al modelo de persistencia y problemas de serialización con proxies/lazy-loading de Hibernate.
 5. **`Alquiler.finalizar(...)` como método de dominio**: la entidad no permite quedar en un estado inconsistente (hora de fin sin costo calculado, o viceversa); la transición de estado vive en el propio modelo, no dispersa en el service.
 6. **Bloqueo optimista (`@Version`) en `Bicicleta`**: mitiga la condición de carrera de dos alquileres concurrentes sobre la misma bicicleta.
@@ -96,12 +96,12 @@ Decisiones de diseño destacadas:
 ## Supuestos e interpretaciones del enunciado
 
 - **Hora de inicio/fin configurables por request, con valor por defecto "ahora"**: `IniciarAlquilerRequest.horaInicio` y `FinalizarAlquilerRequest.horaFin` son opcionales. Si no se envían, el servidor usa `LocalDateTime.now()`. Se decidió así (en vez de forzar siempre la hora del servidor) para poder probar de forma determinística las reglas de redondeo/multa (RN-02/RN-03) sin depender de `Thread.sleep` ni de relojes simulados, y para permitir registros administrativos tardíos. En un entorno productivo con clientes no confiables, se recomendaría ignorar `horaInicio`/`horaFin` del cliente y usar siempre el reloj del servidor (o exigir un rol de "administrador" para poder fijarlas).
-- **Duración mínima facturable de 1 hora**: un alquiler devuelto en menos de una hora igual cobra 1 hora completa (interpretación razonable de "redondeado al alza", ya que no se especifica un mínimo explícito para el costo base como sí se hace para la multa).
+- **Duración mínima facturable de 1 hora**: un alquiler devuelto en menos de una hora igual cobra 1 hora completa.
 - **Multa mínima de 1 hora ante cualquier retraso** (explícito en RN-03): cualquier retraso mayor a 0 segundos cobra al menos 1 hora de multa; esto surge naturalmente de la misma fórmula de redondeo al alza.
 - **`estado` es opcional al crear una bicicleta** (RF-01): si no se informa, se asume `DISPONIBLE`. Esto permite cargar bicicletas ya en mantenimiento o alquiladas (como `BIC-004` en los datos de referencia) sin necesitar un endpoint adicional de cambio de estado.
-- **Código de bicicleta único**: se rechaza con `409 Conflict` el registro de una bicicleta con un código ya existente (no estaba explícito, pero se infiere de "código único").
+- **Código de bicicleta único**: se rechaza con `409 Conflict` el registro de una bicicleta con un código ya existente.
 - **RN-05 con dos causas distintas de error**: "no existe" se mapea a `404 Not Found`; "ya fue finalizado" se mapea a `409 Conflict` (existe el recurso, pero la operación no es válida en su estado actual). Ambos casos devuelven un mensaje descriptivo distinto.
-- **Seguridad**: no se implementó autenticación/autorización (no estaba en el alcance para un nivel practicante y añadir `spring-boot-starter-security` sin diseñarla bien habría bloqueado todos los endpoints por defecto). Lo que sí se aplicó como seguridad básica: validación estricta de entrada (`@Valid` + Bean Validation) para evitar payloads malformados, uso exclusivo de Spring Data JPA con *derived queries* (parámetros vinculados, sin SQL concatenado, sin superficie de inyección SQL), y mensajes de error que no filtran detalles internos (stack traces, SQL) al cliente. En producción se agregaría autenticación por API key o JWT y HTTPS obligatorio.
+- **Seguridad**: no se implementó autenticación/autorización. Lo que sí se aplicó como seguridad básica: validación estricta de entrada (`@Valid` + Bean Validation) para evitar payloads malformados, uso exclusivo de Spring Data JPA con *derived queries* (parámetros vinculados, sin SQL concatenado, sin superficie de inyección SQL), y mensajes de error que no filtran detalles internos al cliente.
 
 ## Modelo de datos
 
